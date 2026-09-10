@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
 import {
   Check,
   X,
@@ -75,6 +76,39 @@ export function DealForm({
   const [statusAction, setStatusAction] = useState<DealStatus | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const contactOptions: ComboboxOption[] = useMemo(() => {
+    return contacts.map((c) => ({
+      value: c.id,
+      label: c.name || c.phone,
+      sublabel: c.name ? c.phone : undefined,
+      keywords: [c.name, c.phone, c.email, c.company].filter(Boolean).join(" "),
+    }));
+  }, [contacts]);
+
+  const profileOptions: ComboboxOption[] = useMemo(() => {
+    return profiles.map((p) => ({
+      value: p.id,
+      label: p.full_name || p.email,
+      sublabel: p.full_name ? p.email : undefined,
+      keywords: [p.full_name, p.email].filter(Boolean).join(" "),
+    }));
+  }, [profiles]);
+
+  const stageOptions: ComboboxOption[] = useMemo(() => {
+    return stages.map((s) => ({
+      value: s.id,
+      label: s.name,
+    }));
+  }, [stages]);
+
+  const currencyOptions: ComboboxOption[] = useMemo(() => {
+    return CURRENCIES.map((c) => ({
+      value: c.code,
+      label: c.code,
+      sublabel: c.symbol,
+    }));
+  }, []);
 
   // Reset the form fields every time the sheet opens or its input
   // props change. This is a legitimate prop-driven sync; the rule is
@@ -271,18 +305,13 @@ export function DealForm({
 
             <div className="grid gap-2">
               <Label className="text-muted-foreground">{t("contact")}</Label>
-              <select
+              <Combobox
+                options={contactOptions}
                 value={contactId}
-                onChange={(e) => setContactId(e.target.value)}
-                className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-              >
-                <option value="">{t("selectContact")}</option>
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name || c.phone}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setContactId}
+                placeholder={t("selectContact")}
+                searchPlaceholder="Search contact by name or phone..."
+              />
 
               {linkedConversation && (
                 <Link
@@ -311,17 +340,12 @@ export function DealForm({
               </div>
               <div className="grid gap-2">
                 <Label className="text-muted-foreground">{t("currency")}</Label>
-                <select
+                <Combobox
+                  options={currencyOptions}
                   value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
-                >
-                  {CURRENCIES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.code}
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={setCurrency}
+                  placeholder="Currency"
+                />
               </div>
             </div>
 
@@ -337,33 +361,25 @@ export function DealForm({
 
             <div className="grid gap-2">
               <Label className="text-muted-foreground">{t("stage")}</Label>
-              <select
+              <Combobox
+                options={stageOptions}
                 value={stageId}
-                onChange={(e) => setStageId(e.target.value)}
-                className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
-              >
-                {stages.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setStageId}
+                placeholder="Select stage..."
+              />
             </div>
 
             <div className="grid gap-2">
               <Label className="text-muted-foreground">{t("assignedTo")}</Label>
-              <select
+              <Combobox
+                options={profileOptions}
                 value={assignedTo}
-                onChange={(e) => setAssignedTo(e.target.value)}
-                className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
-              >
-                <option value="">{t("unassigned")}</option>
-                {profiles.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.full_name || p.email}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setAssignedTo}
+                placeholder={t("unassigned")}
+                searchPlaceholder="Search member by name or email..."
+                clearable={true}
+                clearLabel={t("unassigned")}
+              />
             </div>
 
             <div className="grid gap-2">
