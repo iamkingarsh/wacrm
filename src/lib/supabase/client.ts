@@ -6,17 +6,24 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 // because another request stole it") and intermittent fetch failures.
 let browserClient: SupabaseClient | undefined
 
+const DEFAULT_SUPABASE_URL = 'https://obbbhgoucjamuwmiiknz.supabase.co'
+const DEFAULT_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9iYmJoZ291Y2phbXV3bWlpa256Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NDc1NTgsImV4cCI6MjEwNDUyMzU1OH0.q56mj4VIBHkhzp2D5-Ux9HnnTXoGAP3LwF8wvSq2Vwg'
+
 export function createClient() {
   if (browserClient) return browserClient
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
+  const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const envKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (url.includes('placeholder') && typeof window !== 'undefined') {
-    console.error(
-      '[TapTo Easy CRM] NEXT_PUBLIC_SUPABASE_URL is missing! Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are passed as build arguments during container image build.'
-    )
-  }
+  const url =
+    envUrl && !envUrl.includes('placeholder')
+      ? envUrl
+      : DEFAULT_SUPABASE_URL
+  const key =
+    envKey && !envKey.includes('placeholder')
+      ? envKey
+      : DEFAULT_SUPABASE_ANON_KEY
 
   browserClient = createBrowserClient(url, key)
 
